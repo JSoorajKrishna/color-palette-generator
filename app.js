@@ -1,19 +1,19 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const {Rgb,credential} = require("./models/pallete");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 app.set("view engine","ejs");
 app.use(express.static("public"));
 app.use(express.urlencoded({extended: true}));
+app.use(cookieParser());
 
 
 const urldb = "mongodb+srv://JSoorajKrishna:12345@pollbooth.cgszb.mongodb.net/rgb?retryWrites=true&w=majority";
 mongoose.connect(urldb,{useNewUrlParser: true,useUnifiedTopology: true})
         .then((result) =>app.listen(3000))
         .catch((err) =>console.log(err));
-
-let login = false;
 
 
 app.get("/",(req,res) =>{
@@ -60,7 +60,7 @@ app.post("/login",(req,res) =>{
                             if(req.body.password == result[i].password)
                         {
                             k++;
-                            login = true;
+                            res.cookie("login","true");
                             res.redirect("/dashboard");
                         }
                         break;
@@ -73,7 +73,7 @@ app.post("/login",(req,res) =>{
 });
 
 app.get("/dashboard",(req,res) =>{
-    if(login)
+    if(req.cookies.login)
     res.render("pallete");
     else{
         res.redirect("/login");
@@ -81,7 +81,7 @@ app.get("/dashboard",(req,res) =>{
 });
 
 app.get("/dashboard/:rgb",(req,res) =>{
-    if(login)
+    if(req.cookies.login)
     {
         let rgb = req.params.rgb;
         rgb = new Rgb({rgb});
